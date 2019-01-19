@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">"AndroidCar"</string>
+
+    <string name="stop">"停止"</string>
+    <string name="forward">"前进"</string>
+    <string name="backward">"后退"</string>
+    <string name="speed">"速度:%1$d"</string>
+    <string name="angle">"角度:%1$d"</string>
+    <string name="direct">"方向:%1$s"</string>
+    <string name="connectsuccess">"连接成功"</string>
+    <string name="connectwifi">"请连接AndroidCar"</string>
+    <string name="disconnect">"网络连接中断"</string>
+</resources>
