@@ -44,7 +44,7 @@ if(TCPSever) then
             control(data)
         end)
 
-        socket:on("disconnection", function(sck, c) 
+       socket:on("disconnection", function(sck, c) 
             for i = 0, 4 do
                 if  TcpSocketTable[i] == sck then
                     TcpSocketTable[i] = nil;
@@ -80,45 +80,46 @@ function control(data)
         
             if math.abs(PreAngle - PreAngle_old) > 5 or math.abs(PreDuty - PreDuty_old) > 5 
                 or PreDirect ~= PreDirect_old then    
-                PreDuty_old = PreDuty;
-                PreAngle_old = PreAngle;
-                PreDirect_old = PreDirect;
                 
                 if PreDirect == 1 then
-                    gpio.write(6, gpio.HIGH)  --正转
-                    gpio.write(7, gpio.LOW)
+                    if PreDirect_old ~= PreDirect then
+                        gpio.write(5, gpio.LOW)
+                        tmr.delay(500000)
+                        gpio.write(6, gpio.HIGH) --正转
+                    end
+                                      
                     if PreAngle >= 0 and  PreAngle < 90 then --右前
                         pwm.setduty(1, PreDuty * 10)
                         pwm.setduty(2, math.ceil(PreDuty * PreAngle * 10 / 90))
-                        pwm.setduty(4, PreDuty * 10)
-                        pwm.setduty(5, math.ceil(PreDuty * PreAngle * 10 / 90))
                     end
     
                     if PreAngle >= 90 and  PreAngle < 180 then --左前
                         pwm.setduty(1, math.ceil(PreDuty * (180 - PreAngle) * 10 / 90))
                         pwm.setduty(2, PreDuty * 10)
-                        pwm.setduty(4, math.ceil(PreDuty * (180 - PreAngle) * 10 / 90))
-                        pwm.setduty(5, PreDuty * 10)
-                    end
+                    end 
                 end
                     
-                if PreDirect == 2 then
-                    gpio.write(6, gpio.LOW)  --反转
-                    gpio.write(7, gpio.HIGH)               
+                if PreDirect == 2 then                
+                    if PreDirect_old ~= PreDirect then 
+                        gpio.write(6, gpio.LOW)
+                        tmr.delay(500000)
+                        gpio.write(5, gpio.HIGH)  --反转 
+                    end
+                                  
                     if PreAngle >= 0 and  PreAngle < 90 then --右后
                         pwm.setduty(1, PreDuty * 10)
                         pwm.setduty(2, math.ceil(PreDuty * PreAngle * 10 / 90))
-                        pwm.setduty(4, PreDuty * 10)
-                        pwm.setduty(5, math.ceil(PreDuty * PreAngle * 10 / 90))
                     end
     
                     if PreAngle >= 90 and  PreAngle < 180 then --左后
                         pwm.setduty(1, math.ceil(PreDuty * (180 - PreAngle) * 10 / 90))
                         pwm.setduty(2, PreDuty * 10)
-                        pwm.setduty(4, math.ceil(PreDuty * (180 - PreAngle) * 10 / 90))
-                        pwm.setduty(5, PreDuty * 10)
                     end
                 end
+
+                PreDuty_old = PreDuty;
+                PreAngle_old = PreAngle;
+                PreDirect_old = PreDirect;
             end 
         end
     end
@@ -135,11 +136,11 @@ end
 stopcar = 0;
 stop_flag = 0;
 tmr.alarm(1, 100, tmr.ALARM_AUTO, function() --停车处理
-    if stopcar < 10 then
+    if stopcar < 12 then
         stopcar = stopcar + 1;
     end
     
-    if stopcar >= 10 and stop_flag == 0 then
+    if stopcar >= 12 and stop_flag == 0 then
         stop_flag = 1;     
         PreDuty = 0;
         PreAngle = 0;
@@ -148,10 +149,8 @@ tmr.alarm(1, 100, tmr.ALARM_AUTO, function() --停车处理
         PreAngle_old = 0xFF;
         PreDirect_old = 0xFF;
         gpio.write(6, gpio.LOW)  --停止
-        gpio.write(7, gpio.LOW)
+        gpio.write(5, gpio.LOW)
         pwm.setduty(1, 0)
         pwm.setduty(2, 0)
-        pwm.setduty(4, 0)
-        pwm.setduty(5, 0)
     end
 end)
